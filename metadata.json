@@ -1,0 +1,8 @@
+{
+  "name": "Karaokê do Romas",
+  "description": "Aplicativo pessoal de karaokê do Romas. Adicione músicas, veja a letra e cante junto com seu player completo.",
+  "requestFrame": "true",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

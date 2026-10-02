@@ -27,6 +27,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: 'Karaokê do Romas — Sua Noite de Karaokê Perfeita',
   description: 'Aplicativo pessoal de karaokê do Romas. Adicione músicas, veja a letra e cante junto com seu player completo.',
+  openGraph: {
+    title: 'Karaokê do Romas — Sua Noite de Karaokê Perfeita',
+    description: 'Aplicativo pessoal de karaokê do Romas. Adicione músicas, veja a letra e cante junto com seu player completo.',
+  },
   icons: {
     icon: [{ url: '/favicon.ico', type: 'image/x-icon' }],
   },

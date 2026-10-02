@@ -23,8 +23,7 @@
       "autoprefixer",
       "postcss",
       "eslint",
-      "prettier",
-      "@netlify/plugin-nextjs"
+      "prettier"
     ],
     "scripts": [
       "dev",
@@ -39,13 +38,13 @@
     "warning": "🚨 CRITICAL: DO NOT REMOVE OR MODIFY ABOVE DEPENDENCIES - Required for Next.js 15 TypeScript app functionality"
   },
   "scripts": {
-    "dev": "next dev -p 4028",
+    "dev": "next dev -p 3000 -H 0.0.0.0",
     "build": "next build",
-    "start": "next dev -p 4028",
+    "start": "next start -p 3000 -H 0.0.0.0",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,md,json}\"",
-    "serve": "next start",
+    "serve": "next start -p 3000 -H 0.0.0.0",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -65,7 +64,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@netlify/plugin-nextjs": "^5.11.1",
     "@types/node": "^20",
     "@types/react": "19.0.3",
     "@types/react-dom": "19.0.3",
