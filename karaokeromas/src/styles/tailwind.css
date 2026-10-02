@@ -1,0 +1,230 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --primary: #a855f7;
+  --primary-foreground: #fafafa;
+  --secondary: #18181b;
+  --secondary-foreground: #a1a1aa;
+  --accent: #ec4899;
+  --accent-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #71717a;
+  --card: #111113;
+  --card-foreground: #fafafa;
+  --border: #27272a;
+  --input: #1c1c1f;
+  --ring: #a855f7;
+  --radius: 12px;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, h4, h5, h6, p {
+    margin: 0;
+  }
+}
+
+@layer utilities {
+  .font-mono-nums {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-gradient-primary {
+    background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  }
+
+  .bg-card-elevated {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3), 0 0 60px rgba(168, 85, 247, 0.1);
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+  }
+
+  .lyrics-line {
+    transition: all 0.4s ease;
+    line-height: 1.8;
+  }
+
+  .lyrics-line-active {
+    color: #fafafa;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 0 0 30px rgba(168, 85, 247, 0.8);
+    transform: scale(1.02);
+  }
+
+  .lyrics-line-inactive {
+    color: #52525b;
+    font-size: 1.25rem;
+    font-weight: 400;
+  }
+
+  .lyrics-line-near {
+    color: #a1a1aa;
+    font-size: 1.35rem;
+    font-weight: 500;
+  }
+
+  .player-bar-blur {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(9, 9, 11, 0.85);
+    border-top: 1px solid rgba(39, 39, 42, 0.8);
+  }
+
+  .song-card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .song-card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(168, 85, 247, 0.2);
+  }
+
+  .progress-bar-track {
+    background: rgba(39, 39, 42, 0.8);
+    border-radius: 999px;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .progress-bar-fill {
+    background: linear-gradient(90deg, #a855f7, #ec4899);
+    border-radius: 999px;
+    transition: width 0.1s linear;
+  }
+
+  .volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .volume-slider::-webkit-slider-track {
+    background: var(--muted);
+    border-radius: 999px;
+    height: 4px;
+  }
+
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--primary);
+    margin-top: -5px;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  .volume-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+  }
+
+  .processing-step-active {
+    animation: pulse-step 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-step {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .waveform-bar {
+    animation: waveform 1.2s ease-in-out infinite;
+    transform-origin: bottom;
+  }
+
+  @keyframes waveform {
+    0%, 100% { transform: scaleY(0.3); }
+    50% { transform: scaleY(1); }
+  }
+
+  .fade-in {
+    animation: fadeIn 0.4s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide-up {
+    animation: slideUp 0.3s ease forwards;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .genre-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tv-optimized {
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 6vw, 4.5rem);
+  }
+
+  .lyrics-display {
+    font-size: clamp(1.1rem, 3vw, 2rem);
+  }
+}
