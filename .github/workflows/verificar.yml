@@ -16,16 +16,24 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
+      # Cada passo guarda a saída e, se falhar, mostra o final como anotação
+      # (aparece no resumo da execução, sem precisar abrir o log completo).
       - name: Instalar dependências
-        run: npm install --no-audit --no-fund
+        run: |
+          npm install --no-audit --no-fund > etapa.log 2>&1 || {
+            echo "::error title=npm install::$(tail -n 60 etapa.log | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')"; exit 1; }
 
       - name: Conferir tipos (TypeScript)
-        run: npx tsc --noEmit -p tsconfig.json
+        run: |
+          npx tsc --noEmit -p tsconfig.json > etapa.log 2>&1 || {
+            echo "::error title=TypeScript::$(head -n 80 etapa.log | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')"; exit 1; }
 
       - name: Gerar versão de produção
-        run: npm run build
+        run: |
+          npm run build > etapa.log 2>&1 || {
+            echo "::error title=build::$(tail -n 80 etapa.log | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')"; exit 1; }
 
   pc-worker:
     runs-on: ubuntu-latest
