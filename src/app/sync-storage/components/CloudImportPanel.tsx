@@ -279,7 +279,7 @@ export default function CloudImportPanel() {
                         <CheckCircle2 size={18} className="text-green-400" />
                       ) : importState?.phase === 'error' ? (
                         <AlertTriangle size={18} className="text-red-400" />
-                      ) : importState && importState.phase !== 'done' && importState.phase !== 'error' ? (
+                      ) : importState ? (
                         <Loader2 size={18} className="animate-spin text-blue-400" />
                       ) : (
                         <button

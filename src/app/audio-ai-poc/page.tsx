@@ -442,7 +442,7 @@ export default function AudioAIPocPage() {
       const modelBuffer = await getModelBuffer();
 
       addLog('Criando sessão ONNX…');
-      let session: InstanceType<typeof ort.InferenceSession>;
+      let session: import('onnxruntime-web').InferenceSession;
       let usedProvider: ExecutionProvider = null;
 
       try {
