@@ -40,6 +40,7 @@ O PC de casa pode tirar a voz de qualquer música (IA Demucs). O resultado fica 
 
 - [`docs/YOUTUBE_KARAOKE.md`](docs/YOUTUBE_KARAOKE.md): Fase 1, karaokê pelo YouTube
 - [`pc-worker/LEIA-ME.md`](pc-worker/LEIA-ME.md): Fase 2, separar a voz no PC de casa
+- [`docs/PUBLICAR.md`](docs/PUBLICAR.md): Fase 3, usar de qualquer lugar (Vercel + Tailscale, grátis)
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): arquitetura local-first (IndexedDB, sync, PWA)
 - [`docs/IMPLEMENTATION_LOG.md`](docs/IMPLEMENTATION_LOG.md): histórico de versões
 

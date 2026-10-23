@@ -28,6 +28,10 @@ Custo zero: tudo roda no seu computador.
 
 Deixe a janela preta aberta enquanto estiver separando músicas. Pode minimizar.
 
+## Usar fora de casa
+
+Com o PC ligado em casa, dá para mandar músicas para separar de qualquer lugar usando o **Tailscale** (grátis). Rode o **`acesso-de-qualquer-lugar.bat`** e siga [`docs/PUBLICAR.md`](../docs/PUBLICAR.md), parte 2.
+
 ## Quanto demora
 
 Uma música de ~4 minutos leva cerca de:

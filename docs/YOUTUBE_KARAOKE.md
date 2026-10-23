@@ -69,4 +69,4 @@ Na busca, marque **"Buscar a música original"** e toque em **PC** num resultado
 
 ## Próximo passo sugerido
 
-Para usar no celular **fora de casa**, o app precisa estar publicado na internet (hoje ele roda no `localhost`). Dá para publicar de graça (por exemplo, Vercel ou Firebase Hosting no plano gratuito), já que a Fase 1 não depende de servidor próprio.
+Para usar no celular **fora de casa**, publique o app de graça na Vercel: passo a passo em [`docs/PUBLICAR.md`](PUBLICAR.md).

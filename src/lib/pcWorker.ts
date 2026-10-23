@@ -42,7 +42,10 @@ export interface PcHealth {
 const ADDRESS_KEY = 'karaoke-pc-worker-address:v1';
 const DEFAULT_PORT = 8765;
 
-/** Endereço salvo ou, por padrão, o mesmo computador que serve o app. */
+/**
+ * Endereço salvo ou, por padrão, o mesmo computador que serve o app.
+ * No app publicado (https) não há padrão: o endereço vem do Tailscale.
+ */
 export function getPcAddress(): string {
   try {
     const saved = localStorage.getItem(ADDRESS_KEY);
@@ -50,8 +53,9 @@ export function getPcAddress(): string {
   } catch {
     // sem armazenamento: usa o padrão
   }
-  const host = typeof window !== 'undefined' ? window.location.hostname || 'localhost' : 'localhost';
-  return `http://${host}:${DEFAULT_PORT}`;
+  if (typeof window === 'undefined') return `http://localhost:${DEFAULT_PORT}`;
+  if (window.location.protocol === 'https:') return '';
+  return `http://${window.location.hostname || 'localhost'}:${DEFAULT_PORT}`;
 }
 
 /** Aceita "192.168.0.10", "192.168.0.10:8765" ou o endereço completo. */
@@ -84,17 +88,21 @@ export class PcWorkerError extends Error {
 }
 
 async function call<T>(path: string, init: RequestInit = {}, timeoutMs = 8000): Promise<T> {
+  const address = getPcAddress();
+  if (!address) {
+    throw new PcWorkerError('Coloque o endereço do PC (o do Tailscale, que começa com https://).', true);
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let res: Response;
   try {
-    res = await fetch(`${getPcAddress()}${path}`, { ...init, signal: controller.signal });
+    res = await fetch(`${address}${path}`, { ...init, signal: controller.signal });
   } catch {
     const pageIsHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
     throw new PcWorkerError(
-      pageIsHttps
-        ? 'Não consegui falar com o PC. Abra o app pelo endereço do PC (http://…:3000) para usar a separação.'
-        : 'Não consegui falar com o PC. Confira se o iniciar.bat está aberto e se o aparelho está no mesmo Wi-Fi.',
+      pageIsHttps && address.startsWith('http:')
+        ? 'O app publicado só fala com o PC por um endereço https (Tailscale). Veja docs/PUBLICAR.md.'
+        : 'Não consegui falar com o PC. Confira se o iniciar.bat está aberto e se o aparelho está na mesma rede (Wi-Fi de casa ou Tailscale).',
       true
     );
   } finally {

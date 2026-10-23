@@ -262,7 +262,7 @@ export default function PcPanel({ onPlayLocal, onLibraryChanged, refreshToken, a
           <input
             value={addressInput}
             onChange={(e) => setAddressInput(e.target.value)}
-            placeholder="Endereço do PC, ex.: 192.168.0.10:8765"
+            placeholder="Endereço do PC (ex.: 192.168.0.10 ou https://…ts.net)"
             className="flex-1 min-w-0 bg-input border border-border rounded-lg px-3 py-2 text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-primary"
             inputMode="url"
           />
@@ -397,7 +397,7 @@ export default function PcPanel({ onPlayLocal, onLibraryChanged, refreshToken, a
       {!health && !checking && (
         <p className="text-xs text-muted-foreground">
           Para usar: no PC de casa, abra o <strong>iniciar.bat</strong> da pasta pc-worker e coloque aqui o endereço que
-          aparece na janela. Instruções em pc-worker/LEIA-ME.md.
+          aparece na janela (ou o endereço do Tailscale, para usar fora de casa). Instruções em pc-worker/LEIA-ME.md.
         </p>
       )}
     </div>
