@@ -14,7 +14,11 @@ export interface KaraokeQueueItem {
   singer?: string;
   /** Id da música na biblioteca, se veio das favoritas */
   localId?: string;
+  /** 'local' = instrumental separado no PC, salvo no aparelho (toca sem internet) */
+  kind?: 'youtube' | 'local';
 }
+
+export type QueueExtra = Pick<KaraokeQueueItem, 'singer' | 'localId' | 'kind'>;
 
 interface QueueState {
   nowPlaying: KaraokeQueueItem | null;
@@ -64,13 +68,13 @@ export function useKaraokeQueue() {
   }, [state, loaded]);
 
   /** Coloca no fim da fila. Se nada estiver tocando, já começa. */
-  const enqueue = useCallback((track: YouTubeTrack, extra: { singer?: string; localId?: string } = {}) => {
+  const enqueue = useCallback((track: YouTubeTrack, extra: QueueExtra = {}) => {
     const item: KaraokeQueueItem = { queueId: newQueueId(), track, ...extra };
     setState((s) => (s.nowPlaying ? { ...s, upcoming: [...s.upcoming, item] } : { ...s, nowPlaying: item }));
   }, []);
 
   /** Toca agora, sem mexer no restante da fila. */
-  const playNow = useCallback((track: YouTubeTrack, extra: { singer?: string; localId?: string } = {}) => {
+  const playNow = useCallback((track: YouTubeTrack, extra: QueueExtra = {}) => {
     const item: KaraokeQueueItem = { queueId: newQueueId(), track, ...extra };
     setState((s) => ({ ...s, nowPlaying: item }));
   }, []);

@@ -95,6 +95,10 @@ self.addEventListener('fetch', (event) => {
   // Skip chrome-extension and other non-http(s) requests
   if (!url.protocol.startsWith('http')) return;
 
+  // Outros endereços (YouTube, letras, serviço do PC) — o navegador cuida direto.
+  // Passar por aqui transformava falhas de rede em respostas "503 Offline".
+  if (url.origin !== self.location.origin) return;
+
   // Skip Firebase and external API calls — always network only
   if (NEVER_CACHE_PATTERNS.some((pattern) => pattern.test(request.url))) {
     return; // Let browser handle normally

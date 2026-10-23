@@ -23,11 +23,15 @@ NEXT_PUBLIC_YOUTUBE_API_KEY=sua_chave
 
 Passo a passo completo em [`docs/YOUTUBE_KARAOKE.md`](docs/YOUTUBE_KARAOKE.md).
 
+### Músicas sem versão karaokê (opcional, grátis)
+
+O PC de casa pode tirar a voz de qualquer música (IA Demucs). O resultado fica salvo no aparelho e toca **sem internet**, com controle de "voz guia". Instalação no Windows com dois cliques: veja [`pc-worker/LEIA-ME.md`](pc-worker/LEIA-ME.md).
+
 ## Telas
 
 | Tela | Endereço | Para quê |
 |---|---|---|
-| Cantar | `/cantar` | Buscar, tocar, fila, favoritas e letra (Fase 1) |
+| Cantar | `/cantar` | Buscar, tocar, fila, salvas, letra e separação no PC |
 | Início | `/` | Biblioteca de músicas e favoritas |
 | Adicionar | `/add-music-screen` | Adicionar arquivo de áudio próprio |
 | Sync | `/sync-storage` | Backup opcional no Firebase |
@@ -35,6 +39,7 @@ Passo a passo completo em [`docs/YOUTUBE_KARAOKE.md`](docs/YOUTUBE_KARAOKE.md).
 ## Documentação
 
 - [`docs/YOUTUBE_KARAOKE.md`](docs/YOUTUBE_KARAOKE.md): Fase 1, karaokê pelo YouTube
+- [`pc-worker/LEIA-ME.md`](pc-worker/LEIA-ME.md): Fase 2, separar a voz no PC de casa
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): arquitetura local-first (IndexedDB, sync, PWA)
 - [`docs/IMPLEMENTATION_LOG.md`](docs/IMPLEMENTATION_LOG.md): histórico de versões
 

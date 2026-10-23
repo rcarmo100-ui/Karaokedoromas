@@ -63,6 +63,10 @@ Não precisa cadastrar cartão de crédito para usar essa API.
 
 Alterados: `localDB.ts` (campos do YouTube na música), `songRepository.ts` (salvar favorita), `AppNav.tsx` (menu "Cantar"), `SongLibraryGrid.tsx` e `RecentSongsRow.tsx` (favoritas do YouTube abrem na tela Cantar).
 
+## Fase 2: músicas sem versão karaokê
+
+Na busca, marque **"Buscar a música original"** e toque em **PC** num resultado. O PC de casa separa a voz e o app salva o instrumental (com voz guia ajustável) na aba **Salvas**, tocando sem internet. Instalação e uso: [`pc-worker/LEIA-ME.md`](../pc-worker/LEIA-ME.md).
+
 ## Próximo passo sugerido
 
 Para usar no celular **fora de casa**, o app precisa estar publicado na internet (hoje ele roda no `localhost`). Dá para publicar de graça (por exemplo, Vercel ou Firebase Hosting no plano gratuito), já que a Fase 1 não depende de servidor próprio.

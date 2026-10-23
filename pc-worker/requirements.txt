@@ -1,0 +1,4 @@
+# Serviço do PC — Karaokê do Romas (Fase 2)
+# O PyTorch é instalado antes pelo instalar.bat (versão com ou sem placa NVIDIA).
+demucs==4.0.1
+yt-dlp[default]

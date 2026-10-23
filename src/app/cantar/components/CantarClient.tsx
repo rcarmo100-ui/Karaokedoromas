@@ -30,9 +30,14 @@ import {
   Plus,
   ListMusic,
   Square,
+  Cpu,
+  HardDrive,
 } from 'lucide-react';
 import YouTubeKaraokePlayer from '@/components/YouTubeKaraokePlayer';
+import LocalKaraokePlayer from '@/components/LocalKaraokePlayer';
+import PcPanel from '@/app/cantar/components/PcPanel';
 import { useKaraokeQueue, type KaraokeQueueItem } from '@/hooks/useKaraokeQueue';
+import { pcCreateJobFromYouTube } from '@/lib/pcWorker';
 import {
   extractYouTubeVideoId,
   hasYouTubeApiKey,
@@ -53,7 +58,24 @@ import {
   type LocalSong,
 } from '@/lib/songRepository';
 
-type Tab = 'buscar' | 'fila' | 'favoritas';
+type Tab = 'buscar' | 'fila' | 'favoritas' | 'pc';
+
+/** Música separada no PC (instrumental salvo no aparelho) → item tocável */
+function localSongToTrack(s: LocalSong): YouTubeTrack {
+  const videoId = s.sourceVideoId ?? '';
+  return {
+    videoId,
+    videoTitle: s.title,
+    title: s.title,
+    artist: s.artist === 'Desconhecido' ? '' : s.artist,
+    channelTitle: 'Separada no PC',
+    thumbnailUrl: s.thumbnailUrl ?? (videoId ? youtubeThumbnail(videoId) : ''),
+  };
+}
+
+function isPcSong(s: LocalSong): boolean {
+  return Boolean(s.localInstrumentalAudioKey) && !s.youtubeVideoId;
+}
 
 function favoriteToTrack(s: LocalSong): YouTubeTrack {
   const videoId = s.youtubeVideoId!;
@@ -79,6 +101,9 @@ export default function CantarClient() {
   const [results, setResults] = useState<YouTubeTrack[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [singer, setSinger] = useState('');
+  const [searchOriginal, setSearchOriginal] = useState(false);
+  const [pcRefresh, setPcRefresh] = useState(0);
+  const [pcSongs, setPcSongs] = useState<LocalSong[]>([]);
 
   const [favorites, setFavorites] = useState<LocalSong[]>([]);
   const favoriteByVideo = useMemo(() => {
@@ -105,6 +130,7 @@ export default function CantarClient() {
     try {
       const all = await repositoryGetAllSongs();
       setFavorites(all.filter((s) => Boolean(s.youtubeVideoId)));
+      setPcSongs(all.filter(isPcSong));
     } catch (err) {
       console.error('[Cantar] Falha ao carregar favoritas', err);
     }
@@ -124,6 +150,7 @@ export default function CantarClient() {
     if (localId) {
       repositoryGetSong(localId).then((song) => {
         if (song?.youtubeVideoId) queue.playNow(favoriteToTrack(song), { localId: song.id });
+        else if (song && isPcSong(song)) queue.playNow(localSongToTrack(song), { localId: song.id, kind: 'local' });
       });
     } else if (v) {
       trackFromLink(v).then((track) => track && queue.playNow(track));
@@ -208,7 +235,7 @@ export default function CantarClient() {
 
       setSearching(true);
       try {
-        const items = await searchKaraokeVideos(text);
+        const items = await searchKaraokeVideos(text, { addKaraokeWord: !searchOriginal });
         setResults(items);
         if (items.length === 0) setSearchError('Nenhuma versão karaokê encontrada. Tente outro nome.');
       } catch (err) {
@@ -218,7 +245,7 @@ export default function CantarClient() {
         setSearching(false);
       }
     },
-    [query, apiKeyOk]
+    [query, apiKeyOk, searchOriginal]
   );
 
   // ── Ações ──────────────────────────────────────────────────────────────────
@@ -250,6 +277,50 @@ export default function CantarClient() {
     } catch {
       toast.error('Não foi possível salvar. Tente de novo.');
     }
+  };
+
+  const playLocal = useCallback(
+    async (localId: string, mode: 'now' | 'queue' = 'now') => {
+      const song = await repositoryGetSong(localId);
+      if (!song || !isPcSong(song)) {
+        toast.error('Música não encontrada neste aparelho.');
+        return;
+      }
+      const extra = { localId: song.id, kind: 'local' as const, singer: singer.trim() || undefined };
+      if (mode === 'now') queue.playNow(localSongToTrack(song), extra);
+      else {
+        queue.enqueue(localSongToTrack(song), extra);
+        toast.success(nowPlaying ? 'Adicionada à fila' : 'Tocando agora', { description: song.title });
+      }
+    },
+    [queue, singer, nowPlaying]
+  );
+
+  const sendToPc = async (track: YouTubeTrack) => {
+    try {
+      await pcCreateJobFromYouTube({
+        url: youtubeWatchUrl(track.videoId),
+        titulo: track.title,
+        artista: track.artist,
+        videoId: track.videoId,
+      });
+      toast.success('Enviada para o PC separar a voz', { description: track.title });
+      setPcRefresh((n) => n + 1);
+      setTab('pc');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Não consegui enviar para o PC.');
+    }
+  };
+
+  const guideSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveGuideLevel = (level: number) => {
+    const localId = nowPlaying?.localId;
+    if (!localId) return;
+    if (guideSaveTimer.current) clearTimeout(guideSaveTimer.current);
+    guideSaveTimer.current = setTimeout(() => {
+      repositoryUpdateSong(localId, { vocalGuideLevel: level }).catch(() => {});
+      setPcSongs((prev) => prev.map((s) => (s.id === localId ? { ...s, vocalGuideLevel: level } : s)));
+    }, 600);
   };
 
   const handleEnded = useCallback(() => {
@@ -291,15 +362,29 @@ export default function CantarClient() {
             }`}
           >
             <div className={`relative w-full ${isFullscreen ? 'flex-1 min-h-0' : 'aspect-video'}`}>
-              <YouTubeKaraokePlayer
-                videoId={nowPlaying?.track.videoId ?? null}
-                playKey={nowPlaying?.queueId ?? null}
-                onEnded={handleEnded}
-                onError={handlePlayerError}
-                onTime={setCurrentTime}
-                onLoadError={(msg) => setPlayerError(msg)}
-                className="absolute inset-0"
-              />
+              {nowPlaying?.kind === 'local' && nowPlaying.localId ? (
+                <LocalKaraokePlayer
+                  localId={nowPlaying.localId}
+                  playKey={nowPlaying.queueId}
+                  title={nowPlaying.track.title}
+                  initialGuideLevel={pcSongs.find((s) => s.id === nowPlaying.localId)?.vocalGuideLevel ?? 0}
+                  onEnded={handleEnded}
+                  onTime={setCurrentTime}
+                  onError={(msg) => setPlayerError(msg)}
+                  onGuideLevelChange={saveGuideLevel}
+                  className="absolute inset-0"
+                />
+              ) : (
+                <YouTubeKaraokePlayer
+                  videoId={nowPlaying?.track.videoId ?? null}
+                  playKey={nowPlaying?.queueId ?? null}
+                  onEnded={handleEnded}
+                  onError={handlePlayerError}
+                  onTime={setCurrentTime}
+                  onLoadError={(msg) => setPlayerError(msg)}
+                  className="absolute inset-0"
+                />
+              )}
               {!nowPlaying && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6 bg-gradient-to-br from-primary/20 via-black to-accent/20">
                   <Mic2 size={40} className="text-primary" />
@@ -320,14 +405,16 @@ export default function CantarClient() {
                     >
                       <SkipForward size={16} /> {queue.upcoming.length ? 'Próxima da fila' : 'Fechar'}
                     </button>
-                    <a
-                      href={youtubeWatchUrl(nowPlaying.track.videoId)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted text-sm"
-                    >
-                      <ExternalLink size={16} /> Abrir no YouTube
-                    </a>
+                    {nowPlaying.track.videoId && nowPlaying.kind !== 'local' && (
+                      <a
+                        href={youtubeWatchUrl(nowPlaying.track.videoId)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted text-sm"
+                      >
+                        <ExternalLink size={16} /> Abrir no YouTube
+                      </a>
+                    )}
                   </div>
                 </div>
               )}
@@ -412,6 +499,11 @@ export default function CantarClient() {
               </ToolButton>
               {nowPlaying && (
                 <>
+                  {nowPlaying.kind === 'local' ? (
+                    <span className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-green-500/10 text-green-400">
+                      <HardDrive size={16} /> No aparelho
+                    </span>
+                  ) : (
                   <ToolButton
                     onClick={() => toggleFavorite(nowPlaying.track)}
                     active={favoriteByVideo.has(nowPlaying.track.videoId)}
@@ -419,6 +511,7 @@ export default function CantarClient() {
                   >
                     <Star size={16} fill={favoriteByVideo.has(nowPlaying.track.videoId) ? 'currentColor' : 'none'} />
                   </ToolButton>
+                  )}
                   <ToolButton onClick={queue.replay} label="Repetir">
                     <RotateCcw size={16} />
                   </ToolButton>
@@ -448,7 +541,7 @@ export default function CantarClient() {
 
         {/* ── Painel lateral: busca / fila / favoritas ──────────────────── */}
         <aside className="bg-card-elevated rounded-2xl p-4 min-w-0 lg:max-h-[calc(100vh-120px)] lg:overflow-hidden flex flex-col">
-          <div className="grid grid-cols-3 gap-1 p-1 bg-muted/40 rounded-xl mb-4">
+          <div className="grid grid-cols-4 gap-1 p-1 bg-muted/40 rounded-xl mb-4">
             <TabButton active={tab === 'buscar'} onClick={() => setTab('buscar')}>
               <Search size={14} /> Buscar
             </TabButton>
@@ -456,7 +549,10 @@ export default function CantarClient() {
               <ListMusic size={14} /> Fila{queue.upcoming.length ? ` (${queue.upcoming.length})` : ''}
             </TabButton>
             <TabButton active={tab === 'favoritas'} onClick={() => setTab('favoritas')}>
-              <Star size={14} /> Favoritas
+              <Star size={14} /> Salvas
+            </TabButton>
+            <TabButton active={tab === 'pc'} onClick={() => setTab('pc')}>
+              <Cpu size={14} /> PC
             </TabButton>
           </div>
 
@@ -488,6 +584,18 @@ export default function CantarClient() {
                   className="mt-2 w-full bg-input border border-border rounded-xl px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
 
+                {apiKeyOk && (
+                  <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={searchOriginal}
+                      onChange={(e) => setSearchOriginal(e.target.checked)}
+                      className="accent-primary"
+                    />
+                    Buscar a música original (para separar a voz no PC)
+                  </label>
+                )}
+
                 {!apiKeyOk && (
                   <div className="mt-3 text-xs text-yellow-300/90 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 flex gap-2">
                     <Link2 size={14} className="flex-shrink-0 mt-0.5" />
@@ -509,6 +617,7 @@ export default function CantarClient() {
                       onPlay={() => handlePlayNow(track)}
                       onEnqueue={() => handleEnqueue(track)}
                       onFavorite={() => toggleFavorite(track)}
+                      onSeparate={() => sendToPc(track)}
                     />
                   ))}
                 </ul>
@@ -528,7 +637,29 @@ export default function CantarClient() {
 
             {tab === 'favoritas' && (
               <div>
-                {favorites.length === 0 ? (
+                {pcSongs.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1.5">
+                      <HardDrive size={12} /> Separadas no PC · tocam sem internet
+                    </p>
+                    <ul className="space-y-2">
+                      {pcSongs.map((song) => (
+                        <TrackRow
+                          key={song.id}
+                          track={localSongToTrack(song)}
+                          onPlay={() => playLocal(song.id, 'now')}
+                          onEnqueue={() => playLocal(song.id, 'queue')}
+                        />
+                      ))}
+                    </ul>
+                    {favorites.length > 0 && (
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground mt-4 mb-2 flex items-center gap-1.5">
+                        <Star size={12} /> Favoritas do YouTube
+                      </p>
+                    )}
+                  </div>
+                )}
+                {favorites.length === 0 && pcSongs.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-6 text-center">
                     Nenhuma favorita ainda. Toque na estrela de uma música para salvar aqui — tocar uma favorita não gasta busca.
                   </p>
@@ -551,6 +682,15 @@ export default function CantarClient() {
                 )}
               </div>
             )}
+            {/* Mantém montado para seguir acompanhando o PC em segundo plano */}
+            <div className={tab === 'pc' ? '' : 'hidden'}>
+              <PcPanel
+                active={tab === 'pc'}
+                refreshToken={pcRefresh}
+                onPlayLocal={(id) => playLocal(id, 'now')}
+                onLibraryChanged={loadFavorites}
+              />
+            </div>
           </div>
         </aside>
       </div>
@@ -599,22 +739,30 @@ function TabButton({ children, active, onClick }: { children: React.ReactNode; a
 
 function TrackRow({
   track,
-  isFavorite,
+  isFavorite = false,
   onPlay,
   onEnqueue,
   onFavorite,
+  onSeparate,
 }: {
   track: YouTubeTrack;
-  isFavorite: boolean;
+  isFavorite?: boolean;
   onPlay: () => void;
   onEnqueue: () => void;
-  onFavorite: () => void;
+  onFavorite?: () => void;
+  onSeparate?: () => void;
 }) {
   return (
     <li className="flex gap-3 items-center rounded-xl p-2 hover:bg-muted/40 transition-colors">
       <button onClick={onPlay} className="relative flex-shrink-0 w-24 aspect-video rounded-lg overflow-hidden bg-muted group" aria-label="Cantar agora">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={track.thumbnailUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+        {track.thumbnailUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={track.thumbnailUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+        ) : (
+          <span className="w-full h-full flex items-center justify-center text-primary">
+            <Mic2 size={18} />
+          </span>
+        )}
         <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
           <Play size={18} fill="white" className="text-white" />
         </span>
@@ -633,13 +781,24 @@ function TrackRow({
           <button onClick={onEnqueue} className="flex items-center gap-1 px-2 py-1 rounded-lg bg-muted text-xs">
             <ListPlus size={12} /> Fila
           </button>
-          <button
-            onClick={onFavorite}
-            className={`px-2 py-1 rounded-lg text-xs ${isFavorite ? 'text-yellow-400 bg-yellow-500/10' : 'bg-muted text-muted-foreground'}`}
-            aria-label={isFavorite ? 'Remover das favoritas' : 'Salvar nas favoritas'}
-          >
-            <Star size={12} fill={isFavorite ? 'currentColor' : 'none'} />
-          </button>
+          {onFavorite && (
+            <button
+              onClick={onFavorite}
+              className={`px-2 py-1 rounded-lg text-xs ${isFavorite ? 'text-yellow-400 bg-yellow-500/10' : 'bg-muted text-muted-foreground'}`}
+              aria-label={isFavorite ? 'Remover das favoritas' : 'Salvar nas favoritas'}
+            >
+              <Star size={12} fill={isFavorite ? 'currentColor' : 'none'} />
+            </button>
+          )}
+          {onSeparate && (
+            <button
+              onClick={onSeparate}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-muted text-xs text-muted-foreground"
+              title="Separar a voz no PC de casa (para músicas sem versão karaokê)"
+            >
+              <Cpu size={12} /> PC
+            </button>
+          )}
         </div>
       </div>
     </li>
