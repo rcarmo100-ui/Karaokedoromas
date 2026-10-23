@@ -4,13 +4,14 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AppLogo from '@/components/ui/AppLogo';
-import { Music, Plus, Library, X, Menu, CloudCog, FlaskConical } from 'lucide-react';
+import { Music, Plus, Library, X, Menu, CloudCog, FlaskConical, Mic2 } from 'lucide-react';
 import ConnectivityBadge from '@/components/ConnectivityBadge';
 import Icon from '@/components/ui/AppIcon';
 
 
 const navLinks = [
   { href: '/', label: 'Início', icon: Music, key: 'nav-home' },
+  { href: '/cantar', label: 'Cantar', icon: Mic2, key: 'nav-cantar' },
   { href: '/add-music-screen', label: 'Adicionar', icon: Plus, key: 'nav-add' },
   { href: '/karaoke-player-screen', label: 'Player', icon: Library, key: 'nav-player' },
   { href: '/sync-storage', label: 'Sync', icon: CloudCog, key: 'nav-sync' },

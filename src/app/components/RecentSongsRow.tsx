@@ -66,7 +66,9 @@ export default function RecentSongsRow() {
       <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
         {recentSongs.map((song) => {
           const genreColor = genreColorMap?.[song?.genre?.toLowerCase()?.replace(/ /g, '-')] || '#52525b';
-          const playerHref = `/karaoke-player-screen?localId=${song.id}`;
+          const playerHref = song.youtubeVideoId
+            ? `/cantar?localId=${song.id}`
+            : `/karaoke-player-screen?localId=${song.id}`;
           const statusLabel =
             song.processingStatus === 'DONE' ? null :
             song.processingStatus === 'QUEUED' ? 'Aguardando' :

@@ -1,0 +1,22 @@
+# dependências
+node_modules/
+
+# build do Next.js
+.next/
+out/
+build/
+
+# variáveis locais (chaves de API ficam só na sua máquina)
+.env.local
+.env*.local
+.env
+
+# sistema / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# serviço do PC (Fase 2)
+pc-worker/.venv/
+pc-worker/trabalhos/
+__pycache__/

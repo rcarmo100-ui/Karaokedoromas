@@ -22,6 +22,8 @@ interface DisplaySong {
   isLocal: boolean;
   localId?: string;
   cloudId?: string;
+  youtubeVideoId?: string;
+  thumbnailUrl?: string;
 }
 
 function localSongToDisplay(s: LocalSong): DisplaySong {
@@ -36,6 +38,8 @@ function localSongToDisplay(s: LocalSong): DisplaySong {
     isLocal: true,
     localId: s.id,
     cloudId: s.cloudSongId,
+    youtubeVideoId: s.youtubeVideoId,
+    thumbnailUrl: s.thumbnailUrl,
   };
 }
 
@@ -137,6 +141,7 @@ export default function SongLibraryGrid() {
 
   function getPlayerHref(song: DisplaySong): string {
     // Prefer local ID for local songs, cloud ID for cloud-only songs
+    if (song.isLocal && song.youtubeVideoId) return `/cantar?localId=${song.id}`;
     if (song.isLocal) return `/karaoke-player-screen?localId=${song.id}`;
     if (song.cloudId) return `/karaoke-player-screen?songId=${song.cloudId}`;
     return '/karaoke-player-screen';
