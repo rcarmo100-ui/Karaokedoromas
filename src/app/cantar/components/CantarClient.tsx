@@ -168,7 +168,8 @@ export default function CantarClient() {
   }, [nowKey]);
 
   // ── Letra ──────────────────────────────────────────────────────────────────
-  const nowVideoId = nowPlaying?.track.videoId ?? null;
+  // Busca de novo quando muda a música (arquivos enviados não têm vídeo)
+  const lyricsKey = nowPlaying ? `${nowPlaying.track.title}|${nowPlaying.track.artist}` : null;
   useEffect(() => {
     if (!lyricsOn || !nowPlaying) {
       setLyrics(null);
@@ -192,7 +193,7 @@ export default function CantarClient() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lyricsOn, nowVideoId]);
+  }, [lyricsOn, lyricsKey]);
 
   const changeOffset = (delta: number | null) => {
     const value = delta === null ? 0 : Math.round((lyricsOffset + delta) * 10) / 10;
@@ -237,7 +238,11 @@ export default function CantarClient() {
       try {
         const items = await searchKaraokeVideos(text, { addKaraokeWord: !searchOriginal });
         setResults(items);
-        if (items.length === 0) setSearchError('Nenhuma versão karaokê encontrada. Tente outro nome.');
+        if (items.length === 0) {
+          setSearchError(
+            searchOriginal ? 'Nada encontrado. Tente outro nome.' : 'Nenhuma versão karaokê encontrada. Tente outro nome.'
+          );
+        }
       } catch (err) {
         setResults([]);
         setSearchError(err instanceof YouTubeSearchError ? err.message : 'Erro ao buscar no YouTube.');
