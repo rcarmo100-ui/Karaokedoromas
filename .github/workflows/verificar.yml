@@ -1,0 +1,48 @@
+name: Verificar app
+
+# Instala, confere os tipos e gera a versão de produção a cada envio.
+# Serve para pegar erros antes de alguém abrir o app.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependências
+        run: npm install --no-audit --no-fund
+
+      - name: Conferir tipos (TypeScript)
+        run: npx tsc --noEmit -p tsconfig.json
+
+      - name: Gerar versão de produção
+        run: npm run build
+
+  pc-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Conferir sintaxe do serviço do PC
+        run: python -m py_compile pc-worker/servidor.py pc-worker/processamento.py
+
+      - name: Servidor responde (sem Demucs)
+        working-directory: pc-worker
+        run: |
+          python servidor.py --porta 8765 &
+          for i in $(seq 1 20); do curl -sf http://127.0.0.1:8765/saude && break; sleep 0.5; done
+          curl -sf http://127.0.0.1:8765/trabalhos
