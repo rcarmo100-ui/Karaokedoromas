@@ -23,7 +23,7 @@ Custo zero: tudo roda no seu computador.
 
 2. Na primeira vez, o Windows pergunta se libera o acesso na rede. Marque **Redes privadas** e clique em **Permitir**.
 3. No app, abra **Cantar → aba PC**. Se o app estiver aberto pelo endereço do próprio PC, ele já encontra o serviço sozinho. Se não, cole o endereço da janela preta e toque em **Conectar**.
-4. Na aba **Buscar**, ache a música **original** (não precisa ser karaokê) e toque em **Separar no PC**. Também dá para colar o link ou enviar um arquivo de áudio na aba PC.
+4. Na aba **Buscar**, marque **"Buscar a música original"**, procure a música e toque no botão **PC** do resultado. Também dá para colar o link ou enviar um arquivo de áudio na aba PC.
 5. Acompanhe na aba PC. Quando ficar pronta, o app salva sozinho na biblioteca, com o instrumental e a voz guia.
 
 Deixe a janela preta aberta enquanto estiver separando músicas. Pode minimizar.
