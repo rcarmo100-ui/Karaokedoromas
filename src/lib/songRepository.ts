@@ -248,3 +248,47 @@ export async function repositoryImportFromCloud(cloudSong: {
 
   return localId;
 }
+
+// ── Fase 1: favoritas do YouTube ──────────────────────────────────────────────
+
+export interface YouTubeFavoriteInput {
+  videoId: string;
+  videoTitle: string;
+  title: string;
+  artist: string;
+  channelTitle: string;
+  thumbnailUrl: string;
+}
+
+/** Procura uma favorita já salva com o mesmo vídeo. */
+export async function repositoryFindByYouTubeVideo(videoId: string): Promise<LocalSong | null> {
+  const all = await localGetAllSongs();
+  return all.find((s) => s.youtubeVideoId === videoId) ?? null;
+}
+
+/**
+ * Salva uma versão karaokê do YouTube na biblioteca (favoritas).
+ * Não baixa nada: guarda só os dados para tocar de novo sem gastar busca.
+ * Se o vídeo já estiver salvo, devolve o id existente.
+ */
+export async function repositorySaveYouTubeFavorite(input: YouTubeFavoriteInput): Promise<string> {
+  const existing = await repositoryFindByYouTubeVideo(input.videoId);
+  if (existing) return existing.id;
+
+  return localSaveSong({
+    title: input.title,
+    // Sem artista identificado, a biblioteca mostra o nome do canal
+    artist: input.artist || input.channelTitle || 'YouTube',
+    genre: 'Karaokê',
+    youtubeUrl: `https://www.youtube.com/watch?v=${input.videoId}`,
+    sourceType: 'youtube-karaoke',
+    youtubeVideoId: input.videoId,
+    youtubeVideoTitle: input.videoTitle,
+    channelTitle: input.channelTitle,
+    thumbnailUrl: input.thumbnailUrl,
+    processingStatus: 'DONE',
+    syncStatus: 'LOCAL_ONLY',
+    cloudSyncEnabled: false,
+    localOnly: true,
+  });
+}

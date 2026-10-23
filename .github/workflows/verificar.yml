@@ -1,0 +1,56 @@
+name: Verificar app
+
+# Instala, confere os tipos e gera a versão de produção a cada envio.
+# Serve para pegar erros antes de alguém abrir o app.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Cada passo guarda a saída e, se falhar, mostra o final como anotação
+      # (aparece no resumo da execução, sem precisar abrir o log completo).
+      - name: Instalar dependências
+        run: |
+          npm install --no-audit --no-fund > etapa.log 2>&1 || {
+            echo "::error title=npm install::$(tail -n 60 etapa.log | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')"; exit 1; }
+
+      - name: Conferir tipos (TypeScript)
+        run: |
+          npx tsc --noEmit -p tsconfig.json > etapa.log 2>&1 || {
+            echo "::error title=TypeScript::$(head -n 80 etapa.log | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')"; exit 1; }
+
+      - name: Gerar versão de produção
+        run: |
+          npm run build > etapa.log 2>&1 || {
+            echo "::error title=build::$(tail -n 80 etapa.log | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')"; exit 1; }
+
+  pc-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Conferir sintaxe do serviço do PC
+        run: python -m py_compile pc-worker/servidor.py pc-worker/processamento.py
+
+      - name: Servidor responde (sem Demucs)
+        working-directory: pc-worker
+        run: |
+          python servidor.py --porta 8765 &
+          for i in $(seq 1 20); do curl -sf http://127.0.0.1:8765/saude && break; sleep 0.5; done
+          curl -sf http://127.0.0.1:8765/trabalhos

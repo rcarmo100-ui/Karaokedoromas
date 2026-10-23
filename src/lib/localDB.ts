@@ -31,6 +31,19 @@ export interface LocalSong {
   youtubeUrl?: string;
   coverColor?: string;
 
+  // Fase 1 — karaokê pelo YouTube (vídeo tocado no player embutido)
+  sourceType?: 'youtube-karaoke' | 'local-audio';
+  youtubeVideoId?: string;           // vídeo karaokê escolhido
+  youtubeVideoTitle?: string;
+  channelTitle?: string;
+  thumbnailUrl?: string;
+  lyricsOffset?: number;             // ajuste da letra em segundos (+ atrasa, - adianta)
+
+  // Fase 2 — voz separada no PC de casa (instrumental salvo no aparelho)
+  sourceVideoId?: string;            // vídeo original do YouTube usado na separação
+  pcJobId?: string;                  // trabalho do serviço do PC que gerou os arquivos
+  vocalGuideLevel?: number;          // volume da voz guia preferido (0–100)
+
   // Local file references (blob URLs or object URLs stored as base64 or blob keys)
   localOriginalAudioKey?: string;    // key in 'audioBlobs' store
   localVocalsAudioKey?: string;
