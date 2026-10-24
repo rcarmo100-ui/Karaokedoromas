@@ -391,7 +391,7 @@ export default function CantarClient() {
                 />
               )}
               {!nowPlaying && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6 bg-gradient-to-br from-primary/20 via-black to-accent/20">
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 text-center px-6 bg-gradient-to-br from-primary/20 via-black to-accent/20">
                   <Mic2 size={40} className="text-primary" />
                   <p className="text-lg font-semibold">Escolha uma música para começar</p>
                   <p className="text-sm text-muted-foreground max-w-sm">
@@ -400,7 +400,7 @@ export default function CantarClient() {
                 </div>
               )}
               {playerError && nowPlaying && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center px-6 bg-black/85">
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 text-center px-6 bg-black/85">
                   <AlertTriangle size={36} className="text-yellow-400" />
                   <p className="font-semibold max-w-md">{playerError}</p>
                   <div className="flex flex-wrap gap-2 justify-center">
